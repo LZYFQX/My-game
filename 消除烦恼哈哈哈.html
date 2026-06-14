@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>十关多彩消方块</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            text-align: center;
+            padding-top: 40px;
+        }
+        .container {
+            background: #fff;
+            width: 520px;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px #ccc;
+        }
+        h1 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        .info {
+            font-size: 18px;
+            color: #4a5568;
+            margin: 10px 0;
+        }
+        #gameArea {
+            margin: 20px auto;
+            line-height: 0;
+        }
+        .block {
+            width: 48px;
+            height: 48px;
+            display: inline-block;
+            margin: 2px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .block:hover {
+            transform: scale(1.08);
+        }
+        .block.empty {
+            background: #e2e8f0 !important;
+            cursor: default;
+            transform: none;
+        }
+        .btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background: #3182ce;
+            color: #fff;
+            cursor: pointer;
+            margin: 8px;
+        }
+        .btn:hover {
+            background: #2b6cb0;
+        }
+        .tip {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e53e3e;
+            height: 30px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>十关多彩消方块</h1>
+        <div class="info">
+            当前关卡：<span id="level">1</span> / 10 &nbsp;&nbsp;
+            得分：<span id="score">0</span> &nbsp;&nbsp;
+            剩余方块：<span id="left">0</span>
+        </div>
+        <div class="tip" id="msg"></div>
+        <div id="gameArea"></div>
+        <button class="btn" id="nextBtn">下一关</button>
+        <button class="btn" id="restartBtn">重新开始</button>
+    </div>
+
+    <script>
+        // 颜色数组，多彩方块
+        const colorList = [
+            '#f56565', '#48bb78', '#38b2ac', '#667eea',
+            '#ed8936', '#d69e2e', '#9f7aea', '#f687b3'
+        ];
+        let nowLevel = 1;
+        let totalScore = 0;
+        let row, col;
+        let blockList = [];
+
+        // DOM元素
+        const gameArea = document.getElementById('gameArea');
+        const levelDom = document.getElementById('level');
+        const scoreDom = document.getElementById('score');
+        const leftDom = document.getElementById('left');
+        const msgDom = document.getElementById('msg');
+        const nextBtn = document.getElementById('nextBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // 根据关卡设置行列（越往后格子越多，难度提升）
+        function setSize(level) {
+            if (level <= 3) {
+                row = 4; col = 4;
+            } else if (level <= 6) {
+                row = 5; col = 5;
+            } else {
+                row = 6; col = 6;
+            }
+        }
+
+        // 初始化当前关卡
+        function initLevel() {
+            setSize(nowLevel);
+            gameArea.innerHTML = '';
+            blockList = [];
+            let count = 0;
+            msgDom.innerText = '';
+            nextBtn.disabled = true;
+
+            for (let i = 0; i < row; i++) {
+                for (let j = 0; j < col; j++) {
+                    const div = document.createElement('div');
+                    div.className = 'block';
+                    // 随机颜色
+                    const ranColor = colorList[Math.floor(Math.random() * colorList.length)];
+                    div.style.backgroundColor = ranColor;
+
+                    div.onclick = function () {
+                        if (this.classList.contains('empty')) return;
+                        this.classList.add('empty');
+                        totalScore += 10;
+                        count--;
+                        updateInfo();
+                        // 通关判断
+                        if (count <= 0) {
+                            msgDom.innerText = `第${nowLevel}关通关！`;
+                            msgDom.style.color = '#48bb78';
+                            nextBtn.disabled = false;
+                        }
+                    };
+                    gameArea.appendChild(div);
+                    blockList.push(div);
+                    count++;
+                }
+                // 换行
+                const br = document.createElement('br');
+                gameArea.appendChild(br);
+            }
+            updateInfo();
+        }
+
+        // 更新界面数据
+        function updateInfo() {
+            levelDom.innerText = nowLevel;
+            scoreDom.innerText = totalScore;
+            let left = blockList.filter(item => !item.classList.contains('empty')).length;
+            leftDom.innerText = left;
+        }
+
+        // 下一关
+        nextBtn.onclick = function () {
+            if (nowLevel < 10) {
+                nowLevel++;
+                initLevel();
+            } else {
+                msgDom.innerText = '恭喜！全部10关通关啦！';
+                msgDom.style.color = '#3182ce';
+                nextBtn.disabled = true;
+            }
+        };
+
+        // 重新开始游戏
+        restartBtn.onclick = function () {
+            nowLevel = 1;
+            totalScore = 0;
+            initLevel();
+        };
+
+        // 页面加载启动游戏
+        window.onload = initLevel;
+    </script>
+</body>
+</html>
